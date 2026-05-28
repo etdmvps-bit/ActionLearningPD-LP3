@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Plan 3 EDS - Pohon Keahlian Supervisor</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ==========================================================================
+           CSS INTERNAL - TEMA RPG / SKILL TREE (ROYAL PURPLE & GOLD)
+           ========================================================================== */
+        :root {
+            --bg-dark: #0f0a18;
+            --panel-bg: #1a1425;
+            --panel-border: #3b2a5c;
+            --gold-primary: #fbbf24;
+            --gold-dim: rgba(251, 191, 36, 0.2);
+            --purple-neon: #a855f7;
+            --text-main: #e2e8f0;
+            --text-dim: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background-color: var(--bg-dark); 
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.1), transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.05), transparent 40%);
+            color: var(--text-main); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            padding: 16px; 
+            display: flex; 
+            justify-content: center; 
+            min-height: 100vh; 
+        }
+
+        .app-container { 
+            width: 100%; 
+            max-width: 650px; 
+            background-color: var(--panel-bg); 
+            border-radius: 16px; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), inset 0 0 0 1px var(--panel-border); 
+            padding: 24px; 
+            position: relative;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
+
+        /* Font Stylings */
+        .font-rpg { font-family: 'Cinzel', serif; }
+
+        /* --- MODAL REGISTRASI (GUILD REGISTRY) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 10, 24, 0.95); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; transition: opacity 0.4s ease;
+        }
+        .modal-overlay.hidden { opacity: 0; pointer-events: none; }
+        
+        .reg-box {
+            background: linear-gradient(180deg, #1f1632 0%, #130d1e 100%);
+            border: 2px solid var(--gold-primary);
+            padding: 32px 24px; border-radius: 12px; width: 90%; max-width: 380px;
+            text-align: center; box-shadow: 0 0 30px rgba(251, 191, 36, 0.15);
+            position: relative;
+        }
+        .reg-box::before { content: '✧'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 24px; color: var(--gold-primary); background: #130d1e; padding: 0 10px; }
+        .reg-title { font-size: 22px; color: var(--gold-primary); margin-bottom: 8px; text-shadow: 0 0 10px var(--gold-dim);}
+        .reg-desc { font-size: 12px; color: var(--text-dim); margin-bottom: 24px; }
+        
+        .input-group { margin-bottom: 16px; text-align: left; }
+        .input-group label { display: block; font-size: 11px; font-weight: 700; color: var(--purple-neon); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;}
+        .input-group input { 
+            width: 100%; padding: 12px; border-radius: 6px; 
+            background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border);
+            color: white; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: all 0.3s;
+        }
+        .input-group input:focus { outline: none; border-color: var(--gold-primary); box-shadow: 0 0 10px var(--gold-dim); }
+        .btn-start {
+            width: 100%; padding: 14px; margin-top: 10px;
+            background: linear-gradient(90deg, #b45309, #d97706);
+            border: 1px solid var(--gold-primary); color: white;
+            font-size: 14px; font-weight: 800; border-radius: 6px;
+            cursor: pointer; transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn-start:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--gold-dim); }
+
+        /* --- HEADER & ID CARD --- */
+        .svg-hero { width: 100%; height: 120px; display: flex; justify-content: center; margin-bottom: 16px; }
+        .svg-hero svg { height: 100%; filter: drop-shadow(0 0 12px rgba(251,191,36,0.3)); }
+
+        .main-header { text-align: center; margin-bottom: 24px; }
+        .main-header h1 { font-size: 26px; color: var(--gold-primary); margin-bottom: 8px; letter-spacing: 1px;}
+        .subtitle { font-size: 12px; color: var(--purple-neon); font-weight: 700; letter-spacing: 2px; text-transform: uppercase;}
+
+        /* ID Card User */
+        .id-card {
+            background: rgba(0, 0, 0, 0.3); border: 1px dashed var(--panel-border);
+            border-radius: 12px; padding: 12px 16px; margin-bottom: 24px;
+            display: flex; align-items: center; gap: 16px;
+        }
+        .avatar-ring {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold-primary), var(--purple-neon));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 800; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); border: 2px solid var(--panel-bg);
+        }
+        .user-info { flex: 1; text-align: left;}
+        .user-name { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 2px;}
+        .user-nik { font-size: 11px; color: var(--text-dim); font-family: monospace; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 4px;}
+        .btn-edit-profile { background: transparent; border: 1px solid var(--panel-border); color: var(--text-dim); padding: 6px 12px; border-radius: 6px; font-size: 10px; cursor: pointer; transition: 0.2s;}
+        .btn-edit-profile:hover { border-color: var(--gold-primary); color: var(--gold-primary);}
+
+        .kompetensi-box { 
+            background: rgba(168, 85, 247, 0.05); border: 1px solid var(--panel-border); 
+            padding: 16px; border-radius: 8px; text-align: left;
+        }
+        .kompetensi-title { font-size: 11px; color: var(--gold-primary); font-weight: 800; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;}
+        .kompetensi-desc { font-size: 12px; color: var(--text-main); line-height: 1.6; }
+
+        /* --- DASHBOARD / XP BAR --- */
+        .dashboard-panel { 
+            background: linear-gradient(180deg, rgba(26,20,37,1) 0%, rgba(15,10,24,1) 100%); 
+            border: 1px solid var(--gold-primary); border-radius: 12px; 
+            padding: 20px; margin-bottom: 24px; text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5), inset 0 0 20px var(--gold-dim);
+        }
+        
+        .rank-title { font-size: 18px; color: var(--gold-primary); margin-bottom: 4px; letter-spacing: 1px;}
+        .xp-text { font-size: 11px; color: var(--text-dim); margin-bottom: 16px; font-weight: 700;}
+        
+        .xp-bar-bg { width: 100%; height: 14px; background: rgba(0,0,0,0.6); border-radius: 10px; border: 1px solid var(--panel-border); position: relative; overflow: hidden; margin-bottom: 16px;}
+        .xp-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--purple-neon), var(--gold-primary)); border-radius: 10px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px var(--gold-primary);}
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-box { background: rgba(0,0,0,0.3); border: 1px solid var(--panel-border); padding: 10px; border-radius: 6px; }
+        .stat-val { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 2px;}
+        .stat-lbl { font-size: 9px; color: var(--purple-neon); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;}
+
+        /* --- MASTERIES (LENCANA) --- */
+        .badges-section { margin-bottom: 24px; }
+        .badges-title { font-size: 12px; color: var(--text-dim); font-weight: 800; margin-bottom: 12px; text-transform: uppercase; text-align: center; letter-spacing: 1px;}
+        .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .badge-item { 
+            aspect-ratio: 1; border-radius: 50%; border: 2px solid var(--panel-border); 
+            background: rgba(0,0,0,0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            opacity: 0.4; transition: all 0.4s; position: relative; filter: grayscale(100%);
+        }
+        .badge-item.unlocked { 
+            opacity: 1; border-color: var(--gold-primary); background: var(--gold-dim); 
+            filter: grayscale(0%); box-shadow: 0 0 15px var(--gold-dim);
+        }
+        .badge-icon { font-size: 20px; color: var(--gold-primary); }
+        .badge-item span { font-size: 8px; font-weight: 800; color: #fff; margin-top: 4px; text-transform: uppercase; text-align: center; line-height: 1;}
+
+        /* --- QUEST BOARD (CHECKLIST) --- */
+        .quest-board { background: transparent; margin-bottom: 24px; }
+        .quest-header { border-bottom: 1px solid var(--panel-border); padding-bottom: 12px; margin-bottom: 20px; text-align: center;}
+        .quest-header h2 { font-size: 16px; font-weight: 700; color: var(--gold-primary); letter-spacing: 1px;}
+        
+        .branch-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 28px 0 12px 0; display: flex; align-items: center; gap: 8px; color: var(--purple-neon); }
+        .branch-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, var(--purple-neon), transparent); opacity: 0.5; }
+        .branch-title:first-of-type { margin-top: 0; }
+
+        .checklist-row { 
+            display: flex; align-items: flex-start; padding: 14px; 
+            background: rgba(0, 0, 0, 0.3); border: 1px solid var(--panel-border); border-left: 3px solid var(--panel-border); 
+            border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; 
+        }
+        .checklist-row:hover { background: rgba(251, 191, 36, 0.05); border-left-color: var(--purple-neon); }
+        .checklist-row input { position: absolute; opacity: 0; }
+        
+        /* Runic Checkbox */
+        .box-indicator { width: 18px; height: 18px; border: 2px solid var(--text-dim); border-radius: 4px; margin-right: 14px; margin-top: 2px; flex-shrink: 0; position: relative; transition: all 0.3s; transform: rotate(45deg);}
+        
+        .checklist-row input:checked ~ .box-indicator { background-color: var(--gold-primary); border-color: var(--gold-primary); box-shadow: 0 0 10px var(--gold-primary);}
+        .checklist-row input:checked ~ { border-left-color: var(--gold-primary); }
+
+        .box-indicator:after { content: "✦"; position: absolute; color: var(--bg-dark); font-size: 12px; font-weight: 900; top: -1px; left: 1px; display: none; transform: rotate(-45deg);}
+        .checklist-row input:checked ~ .box-indicator:after { display: block; }
+        
+        .item-text { font-size: 13px; color: var(--text-main); line-height: 1.5; transition: all 0.2s; }
+        .checklist-row input:checked ~ .item-text { color: var(--text-dim); text-decoration: line-through; }
+
+        /* --- BUTTONS --- */
+        .footer-actions { display: flex; gap: 10px; margin-top: 30px; flex-wrap: wrap; }
+        .btn { 
+            flex: 1; min-width: 130px; padding: 14px; font-size: 12px; font-weight: 800; 
+            border-radius: 8px; border: 1px solid transparent; cursor: pointer; text-align: center; 
+            text-transform: uppercase; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; letter-spacing: 1px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .btn-reset { background-color: transparent; color: #ef4444; border-color: #ef4444; }
+        .btn-reset:hover { background-color: rgba(239, 68, 68, 0.1); }
+        .btn-save { background: linear-gradient(90deg, #b45309, #d97706); color: white; border: 1px solid var(--gold-primary); }
+        .btn-save:hover { filter: brightness(1.1); box-shadow: 0 0 15px var(--gold-dim); }
+        
+        .copyright { text-align: center; margin-top: 30px; font-size: 10px; color: var(--panel-border); font-family: monospace;}
+
+        /* Toast */
+        .toast-box { 
+            position: fixed; bottom: 20px; left: 50%; transform: translate(-50%, 100px); 
+            background: var(--bg-dark); border: 1px solid var(--gold-primary); padding: 12px 24px; 
+            font-size: 12px; font-weight: 700; color: var(--gold-primary); border-radius: 8px; 
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; z-index: 200; box-shadow: 0 0 20px var(--gold-dim);
+        }
+        .toast-box.show { transform: translate(-50%, 0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <!-- MODAL REGISTRASI (GUILD) -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="reg-box">
+            <h2 class="reg-title font-rpg">Registrasi Ksatria</h2>
+            <p class="reg-desc">Masukkan identitas Anda untuk mencatat perjalanan penguasaan Pohon Keahlian Pengendalian Diri.</p>
+            
+            <div class="input-group">
+                <label>Nama Lengkap Leader</label>
+                <input type="text" id="input-name" placeholder="Misal: Dimas Arif N." autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Nomor Induk Karyawan (NIK)</label>
+                <input type="text" id="input-nik" placeholder="Misal: 20261031" autocomplete="off">
+            </div>
+            
+            <button onclick="saveProfile()" class="btn-start"><i class="fa-solid fa-khanda"></i> Mulai Perjalanan</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-alert" class="toast-box"><i class="fa-solid fa-sparkles"></i> XP Ditambahkan!</div>
+
+    <div class="app-container">
+        
+        <!-- HEADER & SVG SKILL TREE -->
+        <div class="svg-hero">
+            <!-- Abstract Minimalist Golden Tree SVG -->
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50,95 C50,75 50,60 50,55" stroke="#fbbf24" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M50,55 C35,45 20,40 15,30" stroke="#fbbf24" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M50,55 C65,45 80,40 85,30" stroke="#fbbf24" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M50,55 C45,35 50,20 50,15" stroke="#fbbf24" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M15,30 C10,20 20,15 25,10" stroke="#a855f7" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-dasharray="2,2"/>
+                <path d="M85,30 C90,20 80,15 75,10" stroke="#a855f7" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-dasharray="2,2"/>
+                <circle cx="50" cy="55" r="4" fill="#fbbf24"/>
+                <circle cx="15" cy="30" r="3" fill="#fbbf24"/>
+                <circle cx="85" cy="30" r="3" fill="#fbbf24"/>
+                <circle cx="50" cy="15" r="3" fill="#fbbf24"/>
+                <circle cx="25" cy="10" r="2" fill="#a855f7"/>
+                <circle cx="75" cy="10" r="2" fill="#a855f7"/>
+            </svg>
+        </div>
+
+        <header class="main-header">
+            <p class="subtitle">Employee Development Series - Supervisor</p>
+            <h1 class="font-rpg">POHON KEAHLIAN KENDALI DIRI</h1>
+        </header>
+
+        <!-- ID CARD USER -->
+        <div class="id-card">
+            <div class="avatar-ring" id="user-avatar">?</div>
+            <div class="user-info">
+                <div class="user-name" id="display-name">Nama Leader</div>
+                <div class="user-nik" id="display-nik">NIK: 000000</div>
+            </div>
+            <button onclick="editProfile()" class="btn-edit-profile"><i class="fa-solid fa-pen"></i></button>
+        </div>
+
+        <div class="kompetensi-box">
+            <p class="kompetensi-title"><i class="fa-solid fa-scroll"></i> Objektif Penguasaan (Level 3)</p>
+            <div class="kompetensi-desc">
+                Mampu mengelola gejolak emosi secara mandiri, mengambil keputusan logis di bawah tekanan (manajemen krisis), serta menegur dan membimbing tim tanpa menggunakan serangan personal atau "drama".
+            </div>
+        </div>
+
+        <!-- DASHBOARD XP BAR -->
+        <div class="dashboard-panel" style="margin-top: 24px;">
+            <div class="rank-title font-rpg" id="rank-title">Novice Leader</div>
+            <div class="xp-text" id="xp-text">0 / 15 Mastery Points (0%)</div>
+            
+            <div class="xp-bar-bg">
+                <div class="xp-bar-fill" id="xp-fill"></div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-val" id="total-checked">0</div>
+                    <div class="stat-lbl">Quest Tuntas</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="sektor-lulus">0/4</div>
+                    <div class="stat-lbl">Skill Terbuka</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MASTERIES (LENCANA) -->
+        <div class="badges-section">
+            <p class="badges-title">Mastery Unlocked</p>
+            <div class="badge-grid">
+                <div id="badge-1" class="badge-item">
+                    <div class="badge-icon"><i class="fa-solid fa-brain"></i></div>
+                    <span>Fokus Fakta</span>
+                </div>
+                <div id="badge-2" class="badge-item">
+                    <div class="badge-icon"><i class="fa-solid fa-chess-knight"></i></div>
+                    <span>Taktik Krisis</span>
+                </div>
+                <div id="badge-3" class="badge-item">
+                    <div class="badge-icon"><i class="fa-solid fa-hourglass-end"></i></div>
+                    <span>Mastery 90s</span>
+                </div>
+                <div id="badge-4" class="badge-item">
+                    <div class="badge-icon"><i class="fa-solid fa-handshake-angle"></i></div>
+                    <span>Mentor Bijak</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUEST BOARD (CHECKLIST IP 5-8) -->
+        <div class="quest-board">
+            <div class="quest-header">
+                <h2 class="font-rpg">Daftar Quest Lapangan</h2>
+                <p style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Centang murni saat Anda berhasil mempraktikkannya.</p>
+            </div>
+
+            <!-- CABANG 1: IP 5 (Fakta vs Emosi & Fokus) -->
+            <p class="branch-title"><i class="fa-solid fa-code-branch"></i> Cabang 1: Penguasaan Fakta (IP 5)</p>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-1-1" onchange="toggleTask('1.1')"><span class="box-indicator"></span>
+                <span class="item-text">Saya mencatat murni satu fakta operasional tanpa membumbuinya dengan emosi atau asumsi negatif saat masalah terjadi.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-1-2" onchange="toggleTask('1.2')"><span class="box-indicator"></span>
+                <span class="item-text">Saya melakukan "Jeda Fisik" (melepaskan tangan dari pekerjaan) selama 3 detik penuh saat krisis dadakan muncul.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-1-3" onchange="toggleTask('1.3')"><span class="box-indicator"></span>
+                <span class="item-text">Saya langsung melakukan "Cek Fakta Cepat" (mencari tahu akar masalah teknis) setelah jeda 3 detik, alih-alih mengeluh.</span>
+            </label>
+
+            <!-- CABANG 2: IP 6 (Manajemen Krisis & Teknik Prioritas) -->
+            <p class="branch-title"><i class="fa-solid fa-code-branch"></i> Cabang 2: Manajemen Krisis (IP 6)</p>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-2-1" onchange="toggleTask('2.1')"><span class="box-indicator"></span>
+                <span class="item-text">Saya menahan diri selama 60 detik (Jeda 1 Menit) sebelum memberikan instruksi atau mengambil keputusan saat situasi genting.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-2-2" onchange="toggleTask('2.2')"><span class="box-indicator"></span>
+                <span class="item-text">Saya tidak memaksakan keputusan impulsif ("yang penting beres") hanya karena panik ditekan oleh tenggat waktu.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-2-3" onchange="toggleTask('2.3')"><span class="box-indicator"></span>
+                <span class="item-text">Saya menerapkan teknik PAS dengan memilih SATU prioritas masalah paling krusial untuk diselesaikan lebih dulu.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-2-4" onchange="toggleTask('2.4')"><span class="box-indicator"></span>
+                <span class="item-text">Saya memastikan satu tugas prioritas tersebut dieksekusi hingga tuntas sebelum berpindah ke urusan lain.</span>
+            </label>
+
+            <!-- CABANG 3: IP 7 (Aturan 90 Detik & Teknik DAAR) -->
+            <p class="branch-title"><i class="fa-solid fa-code-branch"></i> Cabang 3: Regulasi Amarah (IP 7)</p>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-3-1" onchange="toggleTask('3.1')"><span class="box-indicator"></span>
+                <span class="item-text">Saya menunda merespons (diam) selama 90 detik saat anggota tim melakukan kesalahan untuk menunggu "banjir kimiawi" mereda.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-3-2" onchange="toggleTask('3.2')"><span class="box-indicator"></span>
+                <span class="item-text">Saya tidak memperpanjang amarah lebih dari 90 detik dengan berhenti memutar ulang kesalahan bawahan di kepala saya.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-3-3" onchange="toggleTask('3.3')"><span class="box-indicator"></span>
+                <span class="item-text">Saya melakukan intervensi "Dinginkan Diri" (misal: membasuh wajah dengan air dingin) saat merasa di ambang batas marah.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-3-4" onchange="toggleTask('3.4')"><span class="box-indicator"></span>
+                <span class="item-text">Saya mempraktikkan relaksasi otot (mengepalkan tangan kuat lalu melepasnya) untuk membuang sisa agresi fisik.</span>
+            </label>
+
+            <!-- CABANG 4: IP 8 (Berhenti Menjadi Penindas & Teknik CPR) -->
+            <p class="branch-title"><i class="fa-solid fa-code-branch"></i> Cabang 4: Komunikasi Asertif (IP 8)</p>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-4-1" onchange="toggleTask('4.1')"><span class="box-indicator"></span>
+                <span class="item-text">Saya berhenti memerankan "Si Penindas" dengan tidak memarahi karakter/pribadi staf saat mereka berbuat salah.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-4-2" onchange="toggleTask('4.2')"><span class="box-indicator"></span>
+                <span class="item-text">Saya menerapkan peran "Penantang" dengan menuntut bawahan untuk memikirkan solusinya sendiri.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-4-3" onchange="toggleTask('4.3')"><span class="box-indicator"></span>
+                <span class="item-text">Saya menegur kesalahan berulang tim menggunakan teknik CPR dengan menyebutkan "Pola" kesalahannya, bukan sekadar emosi.</span>
+            </label>
+            <label class="checklist-row">
+                <input type="checkbox" id="check-4-4" onchange="toggleTask('4.4')"><span class="box-indicator"></span>
+                <span class="item-text">Saya menjelaskan dampak dari kesalahan mereka terhadap kepercayaan dan hubungan kerja secara tenang dan profesional.</span>
+            </label>
+        </div>
+
+        <!-- ACTION CONTROLS -->
+        <div class="footer-actions">
+            <button onclick="confirmReset()" class="btn btn-reset"><i class="fa-solid fa-rotate-left"></i> Reset Quest</button>
+            <button onclick="salinProgress()" class="btn btn-save"><i class="fa-brands fa-whatsapp"></i> Lapor Latihan</button>
+        </div>
+
+        <footer class="copyright">
+            SYSTEM-VER: EDS.LP3.SPV.2026 // EDUCATION & TRAINING DEPT
+        </footer>
+    </div>
+
+    <!-- SCRIPT LOGIKA -->
+    <script>
+        const KEY = 'eds_lp3_spv_v1';
+        
+        // 15 Tasks: IP5(3), IP6(4), IP7(4), IP8(4)
+        const emptyData = () => ({
+            '1.1': false, '1.2': false, '1.3': false, 
+            '2.1': false, '2.2': false, '2.3': false, '2.4': false, 
+            '3.1': false, '3.2': false, '3.3': false, '3.4': false, 
+            '4.1': false, '4.2': false, '4.3': false, '4.4': false  
+        });
+
+        let state = {
+            profile: { name: '', nik: '' },
+            data: emptyData()
+        };
+
+        window.onload = function() {
+            try {
+                const local = localStorage.getItem(KEY);
+                if (local) state = JSON.parse(local);
+            } catch (e) {}
+
+            // Check if profile exists
+            if (!state.profile.name || !state.profile.nik) {
+                document.getElementById('auth-modal').classList.remove('hidden');
+            } else {
+                renderProfile();
+            }
+            
+            // Restore checklist
+            Object.keys(emptyData()).forEach(taskId => {
+                const checkbox = document.getElementById(`check-${taskId.replace('.','-')}`);
+                if(checkbox) checkbox.checked = state.data[taskId];
+            });
+            
+            updateGlobal();
+        };
+
+        function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast-alert');
+            t.innerHTML = `<i class="fa-solid fa-sparkles"></i> ${msg}`; 
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function saveProfile() {
+            const n = document.getElementById('input-name').value.trim();
+            const k = document.getElementById('input-nik').value.trim();
+            if (!n || !k) { alert("Nama dan NIK wajib diisi, Ksatria!"); return; }
+            state.profile.name = n; state.profile.nik = k;
+            save(); renderProfile();
+            document.getElementById('auth-modal').classList.add('hidden');
+            showToast("Registrasi Berhasil!");
+        }
+
+        function editProfile() {
+            document.getElementById('input-name').value = state.profile.name;
+            document.getElementById('input-nik').value = state.profile.nik;
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function renderProfile() {
+            document.getElementById('display-name').innerText = state.profile.name;
+            document.getElementById('display-nik').innerText = `NIK: ${state.profile.nik}`;
+            // Avatar Inisial
+            let inisial = state.profile.name.substring(0, 1).toUpperCase();
+            document.getElementById('user-avatar').innerText = inisial;
+        }
+
+        function confirmReset() {
+            if(confirm("Apakah Anda yakin ingin me-reset seluruh progress Quest? (Data Identitas tidak akan terhapus)")) {
+                state.data = emptyData(); save(); 
+                Object.keys(emptyData()).forEach(taskId => {
+                    document.getElementById(`check-${taskId.replace('.','-')}`).checked = false;
+                });
+                updateGlobal(); 
+                showToast('Quest Di-reset!');
+            }
+        }
+
+        function toggleTask(id) {
+            state.data[id] = document.getElementById(`check-${id.replace('.','-')}`).checked;
+            save(); updateGlobal();
+            if(state.data[id]) showToast('Quest Selesai! XP Ditambahkan');
+        }
+
+        function updateGlobal() {
+            const d = state.data;
+            let total = Object.values(d).filter(v => v).length;
+            
+            // Verifikasi Kelulusan Cabang
+            let b1 = true, b2 = true, b3 = true, b4 = true;
+            if (!d['1.1'] || !d['1.2'] || !d['1.3']) b1 = false;
+            if (!d['2.1'] || !d['2.2'] || !d['2.3'] || !d['2.4']) b2 = false;
+            if (!d['3.1'] || !d['3.2'] || !d['3.3'] || !d['3.4']) b3 = false;
+            if (!d['4.1'] || !d['4.2'] || !d['4.3'] || !d['4.4']) b4 = false;
+
+            const totalPct = Math.round((total / 15) * 100);
+            
+            // Update Text
+            document.getElementById('total-checked').innerText = total;
+            document.getElementById('xp-text').innerText = `${total} / 15 Mastery Points (${totalPct}%)`;
+            
+            // Animate XP Bar
+            document.getElementById('xp-fill').style.width = `${totalPct}%`;
+
+            // Update Cabang
+            let lulusCount = 0;
+            if(b1) lulusCount++; if(b2) lulusCount++; if(b3) lulusCount++; if(b4) lulusCount++;
+            document.getElementById('sektor-lulus').innerText = `${lulusCount}/4`;
+
+            // Update Pangkat
+            const rank = document.getElementById('rank-title');
+            if(totalPct === 100) { rank.innerText = "Grandmaster Leader 👑"; rank.style.color = "#fbbf24"; }
+            else if(totalPct >= 70) { rank.innerText = "Elite Commander ⚔️"; rank.style.color = "#a855f7"; }
+            else if(totalPct >= 40) { rank.innerText = "Warrior SPV 🛡️"; rank.style.color = "#94a3b8"; }
+            else if(totalPct > 0) { rank.innerText = "Apprentice Leader 🔮"; rank.style.color = "#94a3b8"; }
+            else { rank.innerText = "Novice Leader 📜"; rank.style.color = "#64748b"; }
+
+            // Lencana unlock state
+            document.getElementById('badge-1').className = b1 ? "badge-item unlocked" : "badge-item";
+            document.getElementById('badge-2').className = b2 ? "badge-item unlocked" : "badge-item";
+            document.getElementById('badge-3').className = b3 ? "badge-item unlocked" : "badge-item";
+            document.getElementById('badge-4').className = b4 ? "badge-item unlocked" : "badge-item";
+        }
+
+        function salinProgress() {
+            if(!state.profile.name) { alert("Silakan lengkapi profil dulu!"); return; }
+            const d = state.data;
+            let total = Object.values(d).filter(v => v).length;
+            const rank = document.getElementById('rank-title').innerText;
+            
+            let txt = `*LAPORAN POHON KEAHLIAN - EDS (LEVEL 3)*\n`;
+            txt += `👤 Nama : *${state.profile.name}*\n`;
+            txt += `🆔 NIK  : *${state.profile.nik}*\n`;
+            txt += `🎖️ Rank : *${rank}*\n`;
+            txt += `📊 Total XP : *${total}/15 Quest (${Math.round((total/15)*100)}%)*\n\n`;
+            
+            let b1 = Object.keys(d).filter(k => k.startsWith('1.') && d[k]).length;
+            let b2 = Object.keys(d).filter(k => k.startsWith('2.') && d[k]).length;
+            let b3 = Object.keys(d).filter(k => k.startsWith('3.') && d[k]).length;
+            let b4 = Object.keys(d).filter(k => k.startsWith('4.') && d[k]).length;
+            
+            txt += `*Rincian Cabang (Skill Tree):*\n`;
+            txt += `1. Fokus Fakta & Logika : ${b1}/3 ${b1===3 ? '✅ (MAX)' : '⏳'}\n`;
+            txt += `2. Manajemen Krisis PAS : ${b2}/4 ${b2===4 ? '✅ (MAX)' : '⏳'}\n`;
+            txt += `3. Regulasi Amarah 90s  : ${b3}/4 ${b3===4 ? '✅ (MAX)' : '⏳'}\n`;
+            txt += `4. Komunikasi Asertif   : ${b4}/4 ${b4===4 ? '✅ (MAX)' : '⏳'}\n\n`;
+
+            txt += `_Terus tingkatkan mastery lapangan Anda!_ 🚀`;
+
+            const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); showToast('Laporan Siap Tempel di WA!'); } catch (e) {}
+            document.body.removeChild(ta);
+        }
+    </script>
+</body>
+</html>
